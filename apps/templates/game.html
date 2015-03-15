@@ -168,6 +168,10 @@
                 ];
                 $definition.empty();
                 $definition.append(o.join(''));
+            } else {
+                $definition.empty();
+                $definition.append("Fooled You! \"" + word + "\" is not a word.<br/>");
+                $definition.append("Click on the real words in green to see their meanings.");
             }
             if (!$t.hasClass(selected) && !$t.hasClass(revealed)){
                 $t.addClass('selected');
