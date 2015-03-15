@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <title>Dirty Words</title>
+  <style>
+    * {
+        box-sizing: border-box;
+    }
+    #board {
+        background: #aaddff;
+        width: 1210px;
+        padding: 5px;
+        margin: 10px auto;
+    }
+    #board:after {
+        content: '';
+        clear: both;
+        display: block;
+    }
+    .word {
+        font-family: sans-serif;
+        font-weight: bold;
+        font-size: 2em;
+        background: #ffddaa;
+        float: left;
+        width: 190px;
+        height: 100px;
+        margin: 5px;
+        border-radius: 10px;
+        line-height: 100px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    .word.real.selected {
+        background: #aaddaa;
+    }
+    .word.fake.selected {
+        background: #ffaaaa;
+    }
+  </style>
+ </head>
+ <body>
+    <div id='board'></div>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+  <script>
+    var $board = $('#board');
+    var realWordsHidden = 0;
+    $.ajax({
+        url: '/api/board'
+    }).done(function(data){
+        $board.empty();
+        data.board.forEach(function(e,i){
+            var classes = ['word'];
+            if (e.d) {
+                classes.push('real');
+                realWordsHidden += 1;
+            } else {
+                classes.push('fake');
+            }
+            var o = [
+                "<div class='" + classes.join(' ') + "'>",
+                e.w,
+                "</div>",
+            ];
+            $board.append(o.join(''));
+        });
+    })
+    $board.on('click', '.word', function(){
+        var $t = $(this);
+        var selected = 'selected';
+        if (!$t.hasClass(selected)){
+            $t.addClass('selected');
+            if ($t.hasClass('real')){
+                realWordsHidden += -1;
+                console.log("Real words still hidden:", realWordsHidden);
+            }
+        }
+
+    })
+  </script>
+ </body>
+</html>

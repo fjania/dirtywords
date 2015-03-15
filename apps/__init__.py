@@ -13,3 +13,4 @@ def not_found(error):
     return render_template('404.html'), 404
 
 from apps.api import views
+from apps.game import views
