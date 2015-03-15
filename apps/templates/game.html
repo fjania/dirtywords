@@ -89,6 +89,7 @@
     var $definition = $('#definition');
     var realWordsHidden = 0;
     var words = {};
+    var wordOpacity = 0.1;
     var o;
 
     function drawBoard(wordList){
@@ -104,14 +105,21 @@
             }
             o = [
                 "<div class='" + classes.join(' ') + "' data-word='"+e.w+"'>",
+                "<span class='word-text'>",
                 e.w,
+                "</spanv",
                 "</div>",
             ];
             $board.append(o.join(''));
         });
+        wordOpacity += 0.1;
+        if (wordOpacity < 1){
+            $('.word-text').css('opacity', wordOpacity);
+        }
     }
 
     function garbageWord(len){
+        len = (Math.random() * 3) + len
         var text = "";
         var possible = "abcdefghijklmnopqrstuvwxyz";
 
@@ -134,6 +142,7 @@
             url: '/api/board'
         }).done(function(data){
             clearInterval(loader);
+            wordOpacity = 1.0;
             drawBoard(data.board);
         })
     }
