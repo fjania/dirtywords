@@ -12,7 +12,7 @@
     }
 
     #board {
-        background: #aaddff;
+        background: #4462B2;
         width: 1210px;
         height: 670px;
         padding: 5px;
@@ -27,21 +27,40 @@
         cursor: pointer;
         font-weight: bold;
         font-size: 2em;
+        border: 5px solid;
+        border-color: #ffddaa;
         background: #ffddaa;
         float: left;
         width: 190px;
         height: 100px;
         margin: 5px;
         border-radius: 10px;
-        line-height: 100px;
+        line-height: 90px;
         text-align: center;
         vertical-align: middle;
     }
-    #board .word.real.selected {
+    #board .word.real.revealed {
         background: #aaddaa;
+        border-color: #aaddaa;
     }
-    #board .word.fake.selected {
+    #board .word.fake.revealed {
         background: #ffaaaa;
+        border-color: #ffaaaa;
+    }
+    #board .word.revealed {
+        opacity: 0.5;
+    }
+    #board .word.real.revealed {
+        opacity: 0.75;
+    }
+    #board .word.revealed.selected {
+        opacity: 1.0;
+    }
+    #board .word.real.selected{
+        border-color: #0FC851;
+    }
+    #board .word.fake.selected{
+        border-color: #C80F1D;
     }
     #definition {
         background: #aaddff;
@@ -60,6 +79,7 @@
     <div id='definition'></div>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
   <script>
+    var loader;
     var wordCount = 36;
     var $board = $('#board');
     var $definition = $('#definition');
@@ -96,6 +116,7 @@
 
         return text;
     }
+
     function drawLoadingBoard(){
         var wl = [];
         for (var i = 0; i < wordCount; i++){
@@ -103,51 +124,62 @@
         }
         drawBoard(wl);
     }
-    var loader = setInterval(drawLoadingBoard, 100);
 
-    $.ajax({
-        url: '/api/board'
-    }).done(function(data){
-        clearInterval(loader);
-        drawBoard(data.board);
-    })
-
-    function revealAnswers(){
-        $('.word').addClass('selected');
+    function loadBoard(){
+        $.ajax({
+            url: '/api/board'
+        }).done(function(data){
+            clearInterval(loader);
+            drawBoard(data.board);
+        })
     }
-    $board.on('click', '.word', function(){
-        var $t = $(this);
-        var selected = 'selected';
-        var word = $(this).data('word');
 
-        if ($t.hasClass('real')){
-            console.log(word, words);
-            var e = words[word];
-            o = [
-                "<span class='word'>",
-                e.w,
-                "</span>",
-                " - (<span class='pos'>",
-                e.p,
-                "</span>)",
-                "<span class='definition'> : ",
-                e.d,
-                "</span>",
-            ];
-            $definition.empty();
-            $definition.append(o.join(''));
-        }
-        if (!$t.hasClass(selected)){
-            $t.addClass('selected');
+    function revealAnswers(win){
+        $('.word').addClass('revealed');
+    }
+
+    function init(){
+        loader = setInterval(drawLoadingBoard, 100);
+        setTimeout(loadBoard, 500);
+
+        $board.on('click', '.word', function(){
+            var $t = $(this);
+            var selected = 'selected';
+            var revealed = 'revealed';
+            var word = $(this).data('word');
+
             if ($t.hasClass('real')){
-                realWordsHidden += -1;
-                console.log("Real words still hidden:", realWordsHidden);
-            } else {
-                revealAnswers();
+                console.log(word, words);
+                var e = words[word];
+                o = [
+                    "<span class='word'>",
+                    e.w,
+                    "</span>",
+                    " - (<span class='pos'>",
+                    e.p,
+                    "</span>)",
+                    "<span class='definition'> : ",
+                    e.d,
+                    "</span>",
+                ];
+                $definition.empty();
+                $definition.append(o.join(''));
             }
-        }
+            if (!$t.hasClass(selected) && !$t.hasClass(revealed)){
+                $t.addClass('selected');
+                if ($t.hasClass('real')){
+                    realWordsHidden += -1;
+                    if (realWordsHidden < 1) {
+                        revealAnswers(true);
+                    }
+                } else {
+                    revealAnswers();
+                }
+            }
+        })
+    }
 
-    })
+    $(init);
   </script>
  </body>
 </html>
