@@ -11,28 +11,37 @@ class MarkovWords:
         self.words = {}
         self.word_set = set()
 
-        def tuples():
-            for entry in all_words:
-                word = entry.get('w')
-                if len(word) > self.past:
-                    self.words[word] = entry
-                    self.word_set.add(word)
-                    for i in range(len(word) - past):
-                        s = word[i:i+self.past + 1]
-                        yield s
-
         self.cache = defaultdict(list)
-        for t in tuples():
-            key, value = t[0:-1], t[-1]
-            self.cache[key].append(value)
+        self.endcache = defaultdict(list)
+
+        for entry in all_words:
+            word = entry.get('w')
+
+            if len(word) < self.past:
+                continue
+
+            self.words[word] = entry
+            self.word_set.add(word)
+            until = len(word) - past
+            for i in range(until):
+                s = word[i:i+self.past + 1]
+                key, value = s[0:-1], s[-1]
+                if i == until - 1:
+                    self.endcache[key].append(value)
+                else:
+                    self.cache[key].append(value)
 
     def generate_word(self, word_length):
         seed = random.sample(self.word_set,1)[0]
         s = seed[0:self.past]
         generated_word = s
 
-        for i in range(word_length - self.past + 1):
-            next_letters = self.cache.get(s, [])
+        until = word_length - self.past + 1
+        for i in range(until):
+            if i == until - 1:
+                next_letters = self.endcache.get(s, [])
+            else:
+                next_letters = self.cache.get(s, [])
 
             if not next_letters:
                 return None
