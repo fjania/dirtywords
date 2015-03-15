@@ -7,9 +7,14 @@
     * {
         box-sizing: border-box;
     }
+    body {
+        font-family: monospace;
+    }
+
     #board {
         background: #aaddff;
         width: 1210px;
+        height: 670px;
         padding: 5px;
         margin: 10px auto;
     }
@@ -18,8 +23,8 @@
         clear: both;
         display: block;
     }
-    .word {
-        font-family: sans-serif;
+    #board .word {
+        cursor: pointer;
         font-weight: bold;
         font-size: 2em;
         background: #ffddaa;
@@ -32,25 +37,40 @@
         text-align: center;
         vertical-align: middle;
     }
-    .word.real.selected {
+    #board .word.real.selected {
         background: #aaddaa;
     }
-    .word.fake.selected {
+    #board .word.fake.selected {
         background: #ffaaaa;
+    }
+    #definition {
+        background: #aaddff;
+        width: 1210px;
+        padding: 10px;
+        margin: 10px auto;
+        min-height: 35px;
+    }
+    #definition .pos {
+        font-style: italic;
     }
   </style>
  </head>
  <body>
     <div id='board'></div>
+    <div id='definition'></div>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
   <script>
+    var wordCount = 36;
     var $board = $('#board');
+    var $definition = $('#definition');
     var realWordsHidden = 0;
-    $.ajax({
-        url: '/api/board'
-    }).done(function(data){
+    var words = {};
+    var o;
+
+    function drawBoard(wordList){
         $board.empty();
-        data.board.forEach(function(e,i){
+        wordList.forEach(function(e,i){
+            words[e.w] = e;
             var classes = ['word'];
             if (e.d) {
                 classes.push('real');
@@ -58,17 +78,62 @@
             } else {
                 classes.push('fake');
             }
-            var o = [
-                "<div class='" + classes.join(' ') + "'>",
+            o = [
+                "<div class='" + classes.join(' ') + "' data-word='"+e.w+"'>",
                 e.w,
                 "</div>",
             ];
             $board.append(o.join(''));
         });
+    }
+
+    function garbageWord(len){
+        var text = "";
+        var possible = "abcdefghijklmnopqrstuvwxyz";
+
+        for( var i=0; i < len; i++ )
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        return text;
+    }
+    function drawLoadingBoard(){
+        var wl = [];
+        for (var i = 0; i < wordCount; i++){
+            wl.push({w: garbageWord(7)});
+        }
+        drawBoard(wl);
+    }
+    var loader = setInterval(drawLoadingBoard, 100);
+
+    $.ajax({
+        url: '/api/board'
+    }).done(function(data){
+        clearInterval(loader);
+        drawBoard(data.board);
     })
+
     $board.on('click', '.word', function(){
         var $t = $(this);
         var selected = 'selected';
+        var word = $(this).data('word');
+
+        if ($t.hasClass('real')){
+            console.log(word, words);
+            var e = words[word];
+            o = [
+                "<span class='word'>",
+                e.w,
+                "</span>",
+                " - (<span class='pos'>",
+                e.p,
+                "</span>)",
+                "<span class='definition'> : ",
+                e.d,
+                "</span>",
+            ];
+            $definition.empty();
+            $definition.append(o.join(''));
+        }
         if (!$t.hasClass(selected)){
             $t.addClass('selected');
             if ($t.hasClass('real')){
