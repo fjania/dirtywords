@@ -29,6 +29,7 @@
         position: relative;
     }
     #replay {
+        cursor: pointer;
         width: 190px;
         height: 210px;
         background: #ff0033;
@@ -127,6 +128,8 @@
     var wordCount = 30;
     var $board = $('#board');
     var $definition = $('#definition');
+    var $replay = $('#replay');
+
     var realWordsHidden = 0;
     var words = {};
     var wordOpacity = 0.1;
@@ -191,10 +194,20 @@
         $('.word').addClass('revealed');
     }
 
-    function init(){
+    function newBoard() {
+        realWordsHidden = 0;
+        words = {};
+        wordOpacity = 0.1;
+
         loader = setInterval(drawLoadingBoard, 100);
         setTimeout(loadBoard, 500);
+    }
 
+
+    function setupHandlers(){
+        $replay.on('click', function(){
+            newBoard();
+        })
         $board.on('click', '.word', function(){
             var $t = $(this);
             var selected = 'selected';
@@ -202,7 +215,6 @@
             var word = $(this).data('word');
 
             if ($t.hasClass('real')){
-                console.log(word, words);
                 var e = words[word];
                 o = [
                     "<div class='word'>",
@@ -226,7 +238,7 @@
                         'Fooled You!',
                     "</div>",
                     "<div class='pos'>",
-                        word + "is not a word.",
+                        word + " is not a word.",
                     "</div>",
                     "<div class='definition'>",
                         "Click on the real words in green to see their meanings.",
@@ -246,6 +258,11 @@
                 }
             }
         })
+    }
+
+    function init(){
+        setupHandlers();
+        newBoard();
     }
 
     $(init);
