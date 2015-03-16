@@ -12,12 +12,46 @@
         font-family: monospace;
     }
 
-    #board {
-        background: #4462B2;
+    #field {
         width: 1210px;
-        height: 610px;
-        padding: 5px;
         margin: 10px auto;
+        height: 610px;
+    }
+    #field:after {
+        content: '';
+        clear: both;
+        display: block;
+    }
+    #controls {
+        float: left;
+        width: 200px;
+        height: 100%;
+        position: relative;
+    }
+    #replay {
+        width: 190px;
+        height: 210px;
+        background: #ff0033;
+        border-radius: 10px;
+        font-size: 2.5em;
+        position: absolute;
+        bottom: 0px;
+        left: 5px;
+        text-align: center;
+        display: table;
+    }
+    #replay .text {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+    }
+    #board {
+        float: left;
+        background: #4462B2;
+        width: 1010px;
+        height: 100%;
+        padding: 5px;
+        border-radius: 10px;
     }
     #board:after {
         content: '';
@@ -27,16 +61,16 @@
     #board .word {
         cursor: pointer;
         font-weight: bold;
-        font-size: 2em;
-        border: 5px solid;
-        border-color: #ffddaa;
-        background: #ffddaa;
+        font-size: 2.25em;
+        border: 10px solid;
+        border-color: #FFF2DF;
+        background: #FFF2DF;
         float: left;
         width: 190px;
         height: 90px;
         margin: 5px;
         border-radius: 10px;
-        line-height: 80px;
+        line-height: 75px;
         text-align: center;
         vertical-align: middle;
     }
@@ -64,14 +98,14 @@
         border-color: #C80F1D;
     }
     #definition {
-        background: #aaddff;
-        width: 1210px;
         padding: 10px;
-        margin: 10px auto;
+        margin: 5px auto;
         min-height: 35px;
         font-size: 1.25em;
+        line-height: 1.2;
     }
     #definition .word {
+        font-size: 2em;
         font-weight: bold;
     }
     #definition .pos {
@@ -80,12 +114,17 @@
   </style>
  </head>
  <body>
-    <div id='board'></div>
-    <div id='definition'></div>
+    <div id='field'>
+        <div id='board'></div>
+        <div id='controls'>
+            <div id='definition'></div>
+            <div id='replay'><div class='text'>Start New Game</div></div>
+        </div>
+    </div>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
   <script>
     var loader;
-    var wordCount = 36;
+    var wordCount = 30;
     var $board = $('#board');
     var $definition = $('#definition');
     var realWordsHidden = 0;
@@ -140,7 +179,7 @@
 
     function loadBoard(){
         $.ajax({
-            url: '/api/board'
+            url: '/api/board/' + wordCount,
         }).done(function(data){
             clearInterval(loader);
             wordOpacity = 1.0;
@@ -166,22 +205,34 @@
                 console.log(word, words);
                 var e = words[word];
                 o = [
-                    "<span class='word'>",
+                    "<div class='word'>",
                     e.w,
-                    "</span>",
-                    " - (<span class='pos'>",
+                    "</div>",
+                    "<div>",
+                    "(<span class='pos'>",
                     e.p,
-                    "</span>)",
+                    "</span>.)",
                     "<span class='definition'> : ",
                     e.d,
                     "</span>",
+                    "</div>",
                 ];
                 $definition.empty();
                 $definition.append(o.join(''));
             } else {
                 $definition.empty();
-                $definition.append("Fooled You! \"" + word + "\" is not a word.<br/>");
-                $definition.append("Click on the real words in green to see their meanings.");
+                o = [
+                    "<div class='word'>",
+                        'Fooled You!',
+                    "</div>",
+                    "<div class='pos'>",
+                        word + "is not a word.",
+                    "</div>",
+                    "<div class='definition'>",
+                        "Click on the real words in green to see their meanings.",
+                    "</span>",
+                ];
+                $definition.append(o.join(''));
             }
             if (!$t.hasClass(selected) && !$t.hasClass(revealed)){
                 $t.addClass('selected');
