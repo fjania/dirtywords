@@ -60,7 +60,9 @@ class MarkovWords:
         word_length_max = self.past+3
         while real_words_to_show > 0:
             word = random.sample(self.word_set,1)[0]
-            if len(word) >= word_length_min and len(word) <= word_length_max:
+            if len(word) >= word_length_min \
+                and len(word) <= word_length_max \
+                and self.words[word].get('s') > 10:
                 word_list_to_show.append(self.words[word])
                 real_words_to_show += -1
 
