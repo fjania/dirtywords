@@ -3,25 +3,24 @@ import json
 import random
 import string
 
-from apps.wordnet import all_words
+from apps.wordnet import all_defined_words
+from apps.realwords import all_real_words
 
 class MarkovWords:
     def __init__(self, past):
         self.past = past
         self.words = {}
-        self.word_set = set()
 
         self.cache = defaultdict(list)
         self.endcache = defaultdict(list)
 
-        for entry in all_words:
+        for entry in all_defined_words:
             word = entry.get('w')
 
             if len(word) < self.past:
                 continue
 
             self.words[word] = entry
-            self.word_set.add(word)
             until = len(word) - past
             for i in range(until):
                 s = word[i:i+self.past + 1]
@@ -32,7 +31,7 @@ class MarkovWords:
                     self.cache[key].append(value)
 
     def generate_word(self, word_length):
-        seed = random.sample(self.word_set,1)[0]
+        seed = random.choice(all_defined_words).get('w')
         s = seed[0:self.past]
         generated_word = s
 
@@ -58,8 +57,9 @@ class MarkovWords:
         word_list_to_show = []
         word_length_min = self.past+1
         word_length_max = self.past+3
+
         while real_words_to_show > 0:
-            word = random.sample(self.word_set,1)[0]
+            word = random.choice(all_defined_words).get('w')
             if len(word) >= word_length_min \
                 and len(word) <= word_length_max \
                 and self.words[word].get('s') > 10:
@@ -69,7 +69,7 @@ class MarkovWords:
         while fake_words_to_show > 0:
             word_length = random.randint(word_length_min, word_length_max)
             word = self.generate_word(word_length)
-            if word and not word in self.word_set:
+            if word and not word in all_real_words:
                 word_list_to_show.append({
                     'w': word
                 })

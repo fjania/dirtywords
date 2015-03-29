@@ -28,6 +28,13 @@
         height: 100%;
         position: relative;
     }
+    #score {
+        width: 190px;
+        height: 20px;
+        bottom: 210px;
+        position: absolute;
+        left: 5px;
+    }
     #replay {
         cursor: pointer;
         width: 190px;
@@ -119,6 +126,7 @@
         <div id='board'></div>
         <div id='controls'>
             <div id='definition'></div>
+            <div id='score'></div>
             <div id='replay'><div class='text'>Start New Game</div></div>
         </div>
     </div>
@@ -129,11 +137,13 @@
     var $board = $('#board');
     var $definition = $('#definition');
     var $replay = $('#replay');
+    var $score = $('#score');
 
     var realWordsHidden = 0;
     var words = {};
     var wordOpacity = 0.1;
     var o;
+    var score;
 
     function drawBoard(wordList){
         $board.empty();
@@ -198,6 +208,7 @@
         realWordsHidden = 0;
         words = {};
         wordOpacity = 0.1;
+        score = 0;
 
         loader = setInterval(drawLoadingBoard, 100);
         setTimeout(loadBoard, 500);
@@ -220,6 +231,9 @@
                     "<div class='word'>",
                     e.w,
                     "</div>",
+                    "<div class='word-score'>Score:",
+                    e.s,
+                    "</div>",
                     "<div>",
                     "(<span class='pos'>",
                     e.p,
@@ -231,6 +245,8 @@
                 ];
                 $definition.empty();
                 $definition.append(o.join(''));
+                score += e.s;
+                $score.text('Score: ' + score)
             } else {
                 $definition.empty();
                 o = [
