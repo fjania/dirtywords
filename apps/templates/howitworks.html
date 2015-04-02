@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Dirty Words</title>
+  <style>
+    * {
+        box-sizing: border-box;
+    }
+    body {
+        font-family: monospace;
+        font-weight: bold;
+        font-size: 16px;
+    }
+    #progression, #choices {
+      display: inline-block;
+      vertical-align: top;
+    }
+    #progression {
+      width: 500px;
+      margin: 10px;
+    }
+    #choices {
+      width: 1000px;
+      margin: 10px;
+      border-left: 1px solid #333333;
+    }
+    .inline {
+      display: inline-block;
+      width: 240px;
+      margin: 5px;
+    }
+    .segment.inline {
+      width: 80px;
+    }
+    .title {
+      background: #333;
+      color: #fff;
+    }
+    .choices.title {
+      padding: 5px;
+    }
+    .option.inline {
+      width: 150px;
+      margin: 5px;
+      overflow: hidden;
+    }
+    .match {
+      text-decoration: underline;
+    }
+    .next {
+      color: #ED3B5D;
+    }
+  </style>
+ </head>
+ <body>
+  <div id='progression'>
+    <div class='title'>
+      <div class='chosen inline'>Seed Word</div><div class='fakeword inline'>Fake Word</div>
+    </div>
+  </div>
+  <div id='choices'>
+    <div class='choices title'>Possible Choices</div>
+    <div id='choice-table'></div>
+  </div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script>
+  $('body').on('keyup', function(){
+    showStep(step());
+  })
+  Array.prototype.random = function () {
+      return this[Math.floor((Math.random()*this.length))];
+  }
+
+  String.prototype.highlightNext = function (segment) {
+    return this.replace(
+      new RegExp("(" + segment + ")(.)"),
+      "<span class='match'>$1</span><span class='next'>$2</span>"
+    )
+  }
+
+  String.prototype.highlightSegment = function (segment) {
+    return this.replace(
+      new RegExp("(" + segment + ")"),
+      "<span class='match'>$1</span>"
+    )
+  }
+
+  String.prototype.nextLetter = function (segment) {
+    var re = new RegExp("(" + segment + ")(.)");
+    var match = re.exec(this);
+    return match[2];
+  }
+
+  var lookback = 3;
+  var segment;
+  var realwords;
+  var fakeword;
+
+  $.ajax({
+      url: '/api/realwords'
+  }).done(function(data){
+    realwords = data.words;
+    realwords.sort();
+    showStep(step());
+  })
+
+  function seed(segment){
+    if (!segment){
+      return realwords.random();
+    } else {
+      return find(segment).random();
+    }
+  }
+
+  function find(segment){
+    return realwords.filter(function(a){
+      var index = a.indexOf(segment);
+      return index > -1 && (index + segment.length < a.length);
+    });
+  }
+
+  function step(){
+    var chosen;
+    var lastSegment;
+    if (!segment){
+      chosen = seed();
+      fakeword = chosen.substr(0, lookback);
+      segment = fakeword.substr(0, lookback);
+    } else {
+      chosen = seed(segment);
+      fakeword = fakeword + chosen.nextLetter(segment);
+      lastSegment = segment;
+      segment = fakeword.substr(fakeword.length - lookback, lookback);
+    }
+
+    var choices = find(segment);
+
+    return {
+      'fakeword': fakeword,
+      'lastSegment': lastSegment,
+      'segment': segment,
+      'choices': choices,
+      'chosen': chosen,
+    }
+
+  }
+
+  function showStep(step){
+    var chosenLine;
+    if (step.lastSegment) {
+      chosenLine = "<div class='chosen inline'>" + step.chosen.highlightNext(step.lastSegment) + "</div>";
+    } else {
+      chosenLine = "<div class='chosen inline'>" + step.chosen + "</div>";
+    }
+    var o = [
+      "<div>",
+        chosenLine,
+        "<div class='fakeword inline'>" + step.fakeword.highlightSegment(step.segment) + "</div>",
+      "</div>"
+    ].join('');
+
+    $('#progression').append(o);
+
+    o = step.choices.map(
+      function(e){
+        return "<div class='option inline'>" + e.highlightNext(step.segment) + "</div>";
+      }
+    ).join('');
+
+    $('#choice-table').html(o);
+
+  }
+</script>
+ </body>
+</html>
